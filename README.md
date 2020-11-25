@@ -9,3 +9,9 @@ There are two examples at the bottom that are run when you run MEC.py . The bug 
 tests.py is not complete yet. Right now I'm trying to plot the points along with circles provided by my algorithm vs "Miniball" which claims to also use Welzl's algorithm. 
 
 Full tests still need to be written.
+
+
+Code adapted from here:
+
+https://www.geeksforgeeks.org/minimum-enclosing-circle-set-1/?ref=rp
+https://www.geeksforgeeks.org/minimum-enclosing-circle-set-2-welzls-algorithm/
