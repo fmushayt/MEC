@@ -14,4 +14,5 @@ Full tests still need to be written.
 Code adapted from here:
 
 https://www.geeksforgeeks.org/minimum-enclosing-circle-set-1/?ref=rp
+
 https://www.geeksforgeeks.org/minimum-enclosing-circle-set-2-welzls-algorithm/
