@@ -59,6 +59,11 @@ class Plotter:  # Helper class for plotting
             self.fig = fig
         return self.ax
 
+    def set_axes(self, fig, ax):
+        self.ax = ax
+        self.fig = fig
+        return self
+
     def plot_circle(self, circle, **kwargs):
         self.plot_P()
         circle_artist = plt.Circle(circle[0], circle[1], fill=False, **kwargs)

@@ -34,7 +34,7 @@ def dist(p, q):
 # Circle = [centerPoint, radius]
 
 def within(circle, p):
-    return dist(circle[0], p) <= circle[1]
+    return dist(circle[0], p) <= circle[1] + 1e-4  # small tolerance value
 
 
 # Check if circle encloses points
@@ -148,7 +148,6 @@ def welzlR(P, R):
     circle = welzlR(P, R)
     if within(circle, p): return circle
     return welzlR(P, R + [p])
-
 
 def trivial(R):
     assert len(R) <= 3, "Trivial is defined only on three or lesser points, but got {}".format(len(R))
