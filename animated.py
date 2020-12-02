@@ -1,10 +1,15 @@
+# Use this file only for demonstration and animations
+# Use MEC.py for core logic and experiments
+
 import numpy as np
 from math import sqrt
 import random
+import matplotlib.pyplot as plt
+from plot_utils import AnimatedPlotter
 
 infinity = float('inf')
 
-
+fps = 10
 ####################################################################
 
 # Generate Points
@@ -75,7 +80,7 @@ def findCircle(points):
 def findCenter(bx, by, cx, cy):
     B = bx * bx + by * by
     C = cx * cx + cy * cy
-    D = bx * cy - by * cx  #TODO : Handle the case when D = 0. When and why does that happen?
+    D = bx * cy - by * cx
     return [(cy * B - by * C) / (2 * D),
             (bx * C - cx * B) / (2 * D)]
 
@@ -85,7 +90,7 @@ def findCenter(bx, by, cx, cy):
 def bruteF_MEC(P):
     # Number of points in set P
     n = len(P)
-
+    plotter = AnimatedPlotter(run_id="BruteForce4").set_P(P).plot_P()
     # Return MEC for trivial cases
     if n == 0:
         return [[0, 0], 0]
@@ -101,7 +106,7 @@ def bruteF_MEC(P):
 
             # Get circle defined by points pi and pj
             circle = findCircle([P[i], P[j]])
-
+            plotter.plot_circle(circle, color='y').dcc()
             # Check if circle is smaller than previous ones, as well as if it encloses all points
             if circle[1] < mec[1] and enclosing(circle, P):
                 mec = circle
@@ -113,11 +118,12 @@ def bruteF_MEC(P):
 
                 # Get circle defined by points pi and pj
                 circle = findCircle([P[i], P[j], P[k]])
-
+                plotter.plot_circle(circle, color='y').dcc()
                 # Check if circle is smaller than previous ones, as well as if it encloses all points
                 if circle[1] < mec[1] and enclosing(circle, P):
                     mec = circle
-
+    plotter.plot_circle(mec, color='g').dcc()
+    plotter.save_animation(fps=fps)
     return mec
 
 
@@ -126,11 +132,19 @@ def bruteF_MEC(P):
 
 # Find MEC using Welzl's algorithm
 
+plotting = True
+plotter = None
+
 def welzl(P):
+    global plotter
     # Create a shuffled copy of the set of points and run welzls recursive algo on it
     P_copy = P.copy()
+    plotter = AnimatedPlotter(run_id="Welzl4")
+    plotter.set_P(P).plot_P()
     random.shuffle(P_copy)
     result = welzlR(P_copy, [])
+    plotter.plot_circle(result, color='g').dcc()
+    plotter.save_animation(fps=fps)
     return result
 
 
@@ -145,8 +159,11 @@ def welzlR(P, R):
     P = list(P)
     P[idx], P[n - 1] = P[n - 1], P[idx]
     p = P.pop()
+    plotter.plot_point(p, c='r')
     circle = welzlR(P, R)
+    plotter.plot_circle(circle, color='y').dcc()
     if within(circle, p): return circle
+    if len(R) > 0: plotter.plot_points(R, c='orange')
     return welzlR(P, R + [p])
 
 
@@ -176,43 +193,32 @@ def trivial(R):
         return findCircle(R)
 
 # Test Code
-#
+
 # a =   [ [ 0, 0 ],
 #                                 [ 0, 1 ],
 #                                 [ 1, 0 ] ]
-#
+
 # mec1 = bruteF_MEC(a)
 # mec2 = welzl(a)
-#
+
 # print("Brute F Center = { ",mec1[0][1],",",mec1[0][1],
 #                 "} Radius = ",round(mec1[1],6))
-#
+
 # print("Welzl Center = { ",mec2[0][1],",",mec2[0][1],
 #                 "} Radius = ",round(mec2[1],6))
-#
+
+b = np.random.randint(-6,6, size=(5, 2)).tolist()
 # b = [[5, -2],
 #      [-3, -2],
 #      [-2, 5],
 #      [1, 6],
 #      [0, 2]]
-#
-# mec3 = bruteF_MEC(b)
-# mec4 = welzl(b)
-#
-# print("Brute F Center = {", mec3[0][0], ",", mec3[0][1],
-#       "} Radius = ", mec3[1])
-#
-# print("Welzl Center = {", mec4[0][0], ",", mec4[0][1],
-#       "} Radius = ", mec4[1])
-#
-# num_points = 5
-# b = np.random.uniform(-6,6, size=(num_points,2)).tolist()
-#
-# mec3 = bruteF_MEC(b)
-# mec4 = welzl(b)
-#
-# print("Brute F Center = {", mec3[0][0], ",", mec3[0][1],
-#       "} Radius = ", mec3[1])
-#
-# print("Welzl Center = {", mec4[0][0], ",", mec4[0][1],
-#       "} Radius = ", mec4[1])
+
+mec3 = bruteF_MEC(b)
+mec4 = welzl(b)
+
+print("Brute F Center = {", mec3[0][0], ",", mec3[0][1],
+      "} Radius = ", mec3[1])
+
+print("Welzl Center = {", mec4[0][0], ",", mec4[0][1],
+      "} Radius = ", mec4[1])
