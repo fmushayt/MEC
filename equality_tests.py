@@ -1,11 +1,11 @@
-from MEC import bruteF_MEC, welzl
+from MEC import bruteF_MEC, welzl, welzl_mtf
 import numpy as np
 from time import time
 from plot_utils import Plotter
 import os
 
 # Test Code
-n_runs = 2000
+n_runs = 1000
 cardinality_range = [6,30]
 eps = 1e-3
 def within_tolerance(n1, n2):
@@ -22,9 +22,9 @@ def ok_nok(bool):
 passed = 0
 time_bf = []
 time_welzl = []
+time_mtf = []
 
-
-PLOT_FAILS = True
+PLOT_FAILS = False
 plot_dir = "./saved/failures"
 os.makedirs(plot_dir, exist_ok=True)
 
@@ -47,8 +47,13 @@ for i in range(n_runs):
     mec_welzl = welzl(P)
     time_welzl.append(time() - start)
 
-    identical_centers = test_centers(mec_bf, mec_welzl)
-    identical_radii = test_radii(mec_bf, mec_welzl)
+    # move to front heuristic
+    start = time()
+    mec_mtf = welzl_mtf(P)
+    time_mtf.append(time() - start)
+
+    identical_centers = test_centers(mec_bf, mec_welzl) and test_centers(mec_welzl, mec_mtf)
+    identical_radii = test_radii(mec_bf, mec_welzl) and test_radii(mec_welzl, mec_mtf)
     success = identical_centers and identical_radii
     if success:
         passed += 1
@@ -68,4 +73,8 @@ failed = n_runs - passed
 print("#"*10)
 print("\nPassed: {}, Failed: {}, Total: {}".format(passed, failed, n_runs))
 print("\nAverage times:")
-print("\tBrute force: {}ms, Welzl: {}ms".format(np.mean(time_bf).round(6)*1000, np.mean(time_welzl).round(6)*1000))
+print("\tBrute force: {}ms, Welzl: {}ms, WelzlMTF: {}ms".format(
+    np.mean(time_bf).round(6)*1000,
+    np.mean(time_welzl).round(6)*1000,
+    np.mean(time_mtf).round(6)*1000,
+))

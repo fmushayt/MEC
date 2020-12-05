@@ -149,6 +149,34 @@ def welzlR(P, R):
     if within(circle, p): return circle
     return welzlR(P, R + [p])
 
+
+class WelzlMTF:
+    def __init__(self, P):
+        """Implements move to front heuristic proposed by Welzl"""
+        self.P = list(P)  # copy
+        random.shuffle(self.P)  # Random permutation
+
+    def run(self, n, R):
+
+        circle = trivial(R)
+
+        # If support set is size of 3 return circle from trivial case
+        if len(R) == 3 or n < 0:
+            return circle
+
+        for i in range(n):
+            if not within(circle, self.P[i]):
+                circle = self.run(i, R+[self.P[i]])
+                # move pi to front
+                p = self.P[i]
+                del self.P[i]
+                self.P.insert(0,p)
+
+        return circle
+
+def welzl_mtf(P):
+    return WelzlMTF(P).run(len(P), [])
+
 def trivial(R):
     assert len(R) <= 3, "Trivial is defined only on three or lesser points, but got {}".format(len(R))
     # Number of points in set P
@@ -174,21 +202,25 @@ def trivial(R):
         # Otherwise, circle is defined by all three points
         return findCircle(R)
 
-# Test Code
-#
+def rep_circle(circle):
+    return "Center: ({},{}), Radius: {}".format(circle[0][0], circle[0][1], circle[1])
+
+# # Test Code
+# #
 # a =   [ [ 0, 0 ],
 #                                 [ 0, 1 ],
 #                                 [ 1, 0 ] ]
 #
 # mec1 = bruteF_MEC(a)
 # mec2 = welzl(a)
+# mecmtf = welzl_mtf(a)
 #
 # print("Brute F Center = { ",mec1[0][1],",",mec1[0][1],
 #                 "} Radius = ",round(mec1[1],6))
 #
 # print("Welzl Center = { ",mec2[0][1],",",mec2[0][1],
 #                 "} Radius = ",round(mec2[1],6))
-#
+# print("MTF: {}".format(rep_circle(mecmtf)))
 # b = [[5, -2],
 #      [-3, -2],
 #      [-2, 5],
@@ -197,21 +229,23 @@ def trivial(R):
 #
 # mec3 = bruteF_MEC(b)
 # mec4 = welzl(b)
-#
+# mecmtf = welzl_mtf(b)
 # print("Brute F Center = {", mec3[0][0], ",", mec3[0][1],
 #       "} Radius = ", mec3[1])
 #
 # print("Welzl Center = {", mec4[0][0], ",", mec4[0][1],
 #       "} Radius = ", mec4[1])
+# print("MTF: {}".format(rep_circle(mecmtf)))
 #
 # num_points = 5
 # b = np.random.uniform(-6,6, size=(num_points,2)).tolist()
 #
 # mec3 = bruteF_MEC(b)
 # mec4 = welzl(b)
-#
+# mecmtf = welzl_mtf(b)
 # print("Brute F Center = {", mec3[0][0], ",", mec3[0][1],
 #       "} Radius = ", mec3[1])
 #
 # print("Welzl Center = {", mec4[0][0], ",", mec4[0][1],
 #       "} Radius = ", mec4[1])
+# print("MTF: {}".format(rep_circle(mecmtf)))
