@@ -1,6 +1,7 @@
 import numpy as np
 from math import sqrt
 import random
+from collections import Counter
 
 infinity = float('inf')
 
@@ -20,6 +21,22 @@ def get_points(n=10, dist="gaussian"):
         pass
     return X
 
+def get_clusters(n, k, means=None, dist="gaussian"):
+    """ Generates n points sampled from k clusters with (given or random) means"""
+    if means is None:
+        means = np.random.uniform(-50,50, (k,2))
+    else:
+        assert len(means) == k, "Number of clusters and means must be same but got {} and {}".format(k, len(means))
+
+    # decide number of points in each cluster by randomly assigning them to each one by one
+    indices = list(range(k))  # make sure each cluster has atleast one point
+    indices.extend(np.random.choice(list(range(k)), n - k))  # assign the rest randomly to k clusters
+    points_per_cluster = Counter(indices)  # count points per cluster
+    X = []
+    for cluster_idx, n_points_cluster in points_per_cluster.items():
+        x = means[cluster_idx] + np.asarray(get_points(n_points_cluster, dist))
+        X.extend(x.tolist())
+    return X
 
 ####################################################################
 
@@ -249,3 +266,13 @@ def rep_circle(circle):
 # print("Welzl Center = {", mec4[0][0], ",", mec4[0][1],
 #       "} Radius = ", mec4[1])
 # print("MTF: {}".format(rep_circle(mecmtf)))
+
+
+# Test whether get clusters is working fine
+# X = get_clusters(1000, 5)
+# print(type(X))
+# print(np.shape(X))
+# import matplotlib.pyplot as plt
+# X = np.asarray(X)
+# plt.scatter(X[:,0], X[:,1])
+# plt.show()
