@@ -1,5 +1,6 @@
 # Use this file only for demonstration and animations
 # Use MEC.py for core logic and experiments
+from collections import Counter
 
 import numpy as np
 from math import sqrt
@@ -9,7 +10,7 @@ from plot_utils import AnimatedPlotter
 
 infinity = float('inf')
 
-fps = 10
+fps = 15
 ####################################################################
 
 # Generate Points
@@ -25,6 +26,22 @@ def get_points(n=10, dist="gaussian"):
         pass
     return X
 
+def get_clusters(n, k, means=None, dist="gaussian"):
+    """ Generates n points sampled from k clusters with (given or random) means"""
+    if means is None:
+        means = np.random.uniform(-50,50, (k,2))
+    else:
+        assert len(means) == k, "Number of clusters and means must be same but got {} and {}".format(k, len(means))
+
+    # decide number of points in each cluster by randomly assigning them to each one by one
+    indices = list(range(k))  # make sure each cluster has atleast one point
+    indices.extend(np.random.choice(list(range(k)), n - k))  # assign the rest randomly to k clusters
+    points_per_cluster = Counter(indices)  # count points per cluster
+    X = []
+    for cluster_idx, n_points_cluster in points_per_cluster.items():
+        x = means[cluster_idx] + np.asarray(get_points(n_points_cluster, dist))
+        X.extend(x.tolist())
+    return X
 
 ####################################################################
 
@@ -38,9 +55,9 @@ def dist(p, q):
 # Check if point is withtin a circle
 # Circle = [centerPoint, radius]
 
-def within(circle, p):
-    return dist(circle[0], p) <= circle[1]
 
+def within(circle, p):
+    return dist(circle[0], p) <= circle[1] + 1e-4  # small tolerance value
 
 # Check if circle encloses points
 
@@ -90,7 +107,7 @@ def findCenter(bx, by, cx, cy):
 def bruteF_MEC(P):
     # Number of points in set P
     n = len(P)
-    plotter = AnimatedPlotter(run_id="BruteForce4").set_P(P).plot_P()
+    plotter = AnimatedPlotter(run_id="BruteForce5").set_P(P).plot_P()
     # Return MEC for trivial cases
     if n == 0:
         return [[0, 0], 0]
@@ -139,7 +156,7 @@ def welzl(P):
     global plotter
     # Create a shuffled copy of the set of points and run welzls recursive algo on it
     P_copy = P.copy()
-    plotter = AnimatedPlotter(run_id="Welzl4")
+    plotter = AnimatedPlotter(run_id="Welzl5")
     plotter.set_P(P).plot_P()
     random.shuffle(P_copy)
     result = welzlR(P_copy, [])
@@ -159,12 +176,55 @@ def welzlR(P, R):
     P = list(P)
     P[idx], P[n - 1] = P[n - 1], P[idx]
     p = P.pop()
+
     plotter.plot_point(p, c='r')
     circle = welzlR(P, R)
     plotter.plot_circle(circle, color='y').dcc()
     if within(circle, p): return circle
     if len(R) > 0: plotter.plot_points(R, c='orange')
     return welzlR(P, R + [p])
+
+
+class WelzlMTF:
+    def __init__(self, P):
+        """Implements move to front heuristic proposed by Welzl"""
+
+        self.P = list(P)  # copy
+        random.shuffle(self.P)  # Random permutation
+
+
+    def run(self, n, R):
+
+        circle = trivial(R)
+
+        # If support set is size of 3 return circle from trivial case
+        if len(R) == 3 or n < 0:
+            plotter.plot_circle(circle, color='y').dcc()
+            return circle
+
+        for i in range(n):
+            if not within(circle, self.P[i]):
+                plotter.plot_point(self.P[i], c='r')
+                if len(R)>0 : plotter.plot_points(R, c='orange')
+                circle = self.run(i, R+[self.P[i]])
+                plotter.plot_circle(circle, color='y').dcc()
+                # move pi to front
+                p = self.P[i]
+                del self.P[i]
+                self.P.insert(0,p)
+
+        return circle
+
+
+def welzl_mtf(P):
+    global plotter
+    plotter = AnimatedPlotter(run_id="WelzlMTF5").set_P(P).plot_P()
+    circle = WelzlMTF(P).run(len(P), [])
+    plotter.plot_circle(circle, color='g').dcc()
+    plotter.save_animation(fps=fps)
+    return circle
+
+
 
 
 def trivial(R):
@@ -207,7 +267,7 @@ def trivial(R):
 # print("Welzl Center = { ",mec2[0][1],",",mec2[0][1],
 #                 "} Radius = ",round(mec2[1],6))
 
-b = np.random.randint(-6,6, size=(5, 2)).tolist()
+b = np.random.randint(-10,10, size=(6, 2)).tolist()
 # b = [[5, -2],
 #      [-3, -2],
 #      [-2, 5],
@@ -216,9 +276,13 @@ b = np.random.randint(-6,6, size=(5, 2)).tolist()
 
 mec3 = bruteF_MEC(b)
 mec4 = welzl(b)
+mec5 = welzl_mtf(b)
 
 print("Brute F Center = {", mec3[0][0], ",", mec3[0][1],
       "} Radius = ", mec3[1])
 
 print("Welzl Center = {", mec4[0][0], ",", mec4[0][1],
       "} Radius = ", mec4[1])
+
+print("Welzl Center = {", mec5[0][0], ",", mec5[0][1],
+      "} Radius = ", mec5[1])

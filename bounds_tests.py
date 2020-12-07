@@ -22,20 +22,32 @@ def plot_runtimes(ax, runtimes, label, normalize=False, **kwargs):
         means = means/means.max()
         mins = mins/mins.max()
         maxs = maxs/maxs.max()
-    ax.plot(x, means, label=label, **kwargs)
-    ax.fill_between(x, mins, maxs, alpha=0.1, **kwargs)
+    # ax.plot(x, means, c="#FFD700", label=label, **kwargs)
+    # ax.fill_between(x, mins, maxs, facecolor="#FFD700", alpha=0.1, **kwargs)
+    ax.plot(x, means, c="r", label=label, **kwargs)
+    ax.fill_between(x, mins, maxs, facecolor="r", alpha=0.1, **kwargs)
 
 def plot_order_four(ax, domain, C_range=(0.8e-8,8e-8), **kwargs):
     y = np.asarray(domain)**4
     lower = C_range[0]*y
     upper = C_range[1]*y
-    ax.plot(domain, lower, label='0.1cn^4', **kwargs)
-    ax.plot(domain, upper, label='cn^4', **kwargs)
-    ax.fill_between(domain, lower, upper, alpha=0.1, **kwargs)
+    ax.plot(domain, lower, c='orange', marker='o', markersize=3.5, label='0.1cn^4',**kwargs)
+    ax.plot(domain, upper, c='orange', marker='s', markersize=3.5, label='cn^4',**kwargs)
+    ax.fill_between(domain, lower, upper, alpha=0.1, facecolor='orange', **kwargs)
+
+
+def plot_order_one(ax, domain, C_range=(0.8e-5,8e-5), **kwargs):
+    y = np.asarray(domain)
+    lower = C_range[0]*y
+    upper = C_range[1]*y
+    ax.plot(domain, lower, c='orange', marker='o', markersize=3.5, label='0.1cn',**kwargs)
+    ax.plot(domain, upper, c='orange', marker='s', markersize=3.5, label='cn',**kwargs)
+    ax.fill_between(domain, lower, upper, alpha=0.1, facecolor='orange', **kwargs)
+
 
 
 def f(x, c):
-    return c*x**4
+    return c*x
 
 P = get_points(total_points)
 
@@ -51,8 +63,27 @@ means = np.asarray([v['mean'] for v in runtimes_bf.values()])
 
 fig, ax = plt.subplots()
 plot_runtimes(ax, runtimes_bf, label='Brute Force')
-plot_order_four(ax, N)
+plot_order_four(ax, N[::3])
 plt.xlabel("Number of points (N)")
 plt.ylabel("Time (s)")
 plt.legend()
 plt.show()
+
+
+# N = np.asarray(range(3, len(P)))
+# runtimes_welzl = {}
+# # base = get_runtime_stats(bruteF_MEC, P, runs=1)
+# for i in N:
+#     runtimes_welzl[i] = get_runtime_stats(welzl, P[:i], runs=10)
+#
+# means = np.asarray([v['mean'] for v in runtimes_welzl.values()])
+# # means = means/means.max()
+# print(curve_fit(f, N, means, [1]))
+#
+# fig, ax = plt.subplots()
+# plot_runtimes(ax, runtimes_welzl, label='Welzl')
+# plot_order_one(ax, N[::3])
+# plt.xlabel("Number of points (N)")
+# plt.ylabel("Time (s)")
+# plt.legend()
+# plt.show()

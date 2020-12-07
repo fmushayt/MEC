@@ -6,7 +6,7 @@ import os
 import uuid
 import glob
 import imageio
-
+import shutil
 
 class Plotter:  # Helper class for plotting
     def __init__(self, run_id=None):
@@ -112,6 +112,8 @@ class AnimatedPlotter(Plotter):  # Helper class to create gifs of progress of al
 
         self.save_animation_dir = os.path.join(save_dir, "animations")
         self.frame_dir = os.path.join(self.save_animation_dir, run_id, "frames")
+        if os.path.exists(self.frame_dir):
+            shutil.rmtree(self.frame_dir)
         os.makedirs(self.frame_dir)
         self._frame = 0
 
@@ -126,7 +128,7 @@ class AnimatedPlotter(Plotter):  # Helper class to create gifs of progress of al
         for fname in fnames:
             images.append(imageio.imread(fname))
 
-        for i in range(3):  # repeat last frame 3 times (result)
+        for i in range(5):  # repeat last frame 3 times (result)
             images.append(images[-1])
         anim_path = os.path.join(self.save_animation_dir, "{}.gif".format(self.run_id))
         imageio.mimsave(anim_path, images, fps=fps)
